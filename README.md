@@ -144,12 +144,17 @@ php spark migrate --seed
 
 ## 📸 Screenshot
 
-Tambahkan screenshot berikut:
+### Dashboard
+![Dashboard](screenshots/dashboard.png)
 
-* Dashboard
-* Booking
-* Payment Midtrans
-* Admin Panel
+### Booking
+![Booking](screenshots/booking.png)
+
+### Payment
+![Payment](screenshots/payment.png)
+
+### Admin Panel
+![Admin](screenshots/admin.png)
 
 ---
 
