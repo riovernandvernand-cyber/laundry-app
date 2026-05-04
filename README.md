@@ -145,16 +145,16 @@ php spark migrate --seed
 ## 📸 Screenshot
 
 ### Dashboard
-![Dashboard](screenshots/dashboard.png)
+![Dashboard](./screenshots/dashboard.png)
 
 ### Booking
-![Booking](screenshots/booking.png)
+![Booking](./screenshots/booking.png)
 
 ### Payment
-![Payment](screenshots/payment.png)
+![Payment](./screenshots/payment.png)
 
 ### Admin Panel
-![Admin](screenshots/admin.png)
+![Admin](./screenshots/admin.png)
 
 ---
 
