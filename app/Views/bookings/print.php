@@ -1,3 +1,4 @@
+<?php /** @var array $booking */ ?>
 <!DOCTYPE html>
 <html>
 <head>
@@ -16,7 +17,7 @@
     <p>ID: <?= $booking['id'] ?></p>
     <p>Total: Rp <?= number_format($booking['total']) ?></p>
     <p>Status: <?= ucfirst($booking['status']) ?></p>
-    <p>Tanggal: <?= $booking['booking_date'] ?></p>
+    <p>Tanggal: <?= $booking['date'] ?? '-' ?></p>
 
     <hr>
     <p>Terima kasih 🙏</p>

@@ -1,3 +1,12 @@
+<?php
+/**
+ * @var string $role
+ * @var array $bookings
+ * @var \CodeIgniter\Pager\Pager $pager
+ * @var string|null $status
+ * @var string|null $date
+ */
+?>
 <?= $this->extend('layouts/main') ?>
 <?= $this->section('content') ?>
 
@@ -42,6 +51,9 @@
             <thead class="table-dark">
                 <tr>
                     <th>Layanan</th>
+                    <?php if ($role != 'pelanggan'): ?>
+                        <th>Pelanggan</th>
+                    <?php endif; ?>
                     <th>Tanggal</th>
                     <th>Jam</th>
                     <th>Berat</th>
@@ -56,6 +68,9 @@
                 <?php foreach ($bookings as $b): ?>
                     <tr>
                         <td><?= $b['service_name'] ?></td>
+                        <?php if ($role != 'pelanggan'): ?>
+                            <td><?= esc((string)$b['user_name']) ?></td>
+                        <?php endif; ?>
                         <td><?= $b['date'] ?></td>
                         <td><?= $b['time'] ?></td>
                         <td><?= $b['weight'] ?> kg</td>
@@ -65,8 +80,10 @@
 
                         <!-- PAYMENT -->
                         <td>
-                            <?php if ($b['payment_status'] == 'confirmed'): ?>
+                            <?php if ($b['payment_status'] == 'paid'): ?>
                                 <span class="badge bg-success">Lunas</span>
+                            <?php elseif ($b['payment_status'] == 'failed'): ?>
+                                <span class="badge bg-danger">Gagal</span>
                             <?php else: ?>
                                 <span class="badge bg-warning text-dark">Belum</span>
                             <?php endif; ?>
@@ -74,10 +91,14 @@
 
                         <!-- LAUNDRY -->
                         <td>
-                            <?php if ($b['laundry_status'] == 'done'): ?>
+                            <?php if ($b['status'] == 'done'): ?>
                                 <span class="badge bg-success">Selesai</span>
-                            <?php elseif ($b['laundry_status'] == 'process'): ?>
+                            <?php elseif ($b['status'] == 'processing'): ?>
                                 <span class="badge bg-primary">Diproses</span>
+                            <?php elseif ($b['status'] == 'confirmed'): ?>
+                                <span class="badge bg-info">Dikonfirmasi</span>
+                            <?php elseif ($b['status'] == 'cancelled'): ?>
+                                <span class="badge bg-danger">Dibatalkan</span>
                             <?php else: ?>
                                 <span class="badge bg-secondary">Pending</span>
                             <?php endif; ?>
@@ -89,7 +110,7 @@
                             <!-- USER -->
                             <?php if ($role == 'pelanggan'): ?>
 
-                                <?php if ($b['payment_status'] != 'confirmed'): ?>
+                                <?php if ($b['payment_status'] != 'paid'): ?>
                                     <a href="/bookings/pay/<?= $b['id'] ?>"
                                        class="btn btn-sm btn-success">
                                        Bayar
@@ -105,7 +126,7 @@
                             <?php elseif ($role == 'admin'): ?>
 
                                 <!-- APPROVE / REJECT (WAJIB DOSEN) -->
-                                <?php if ($b['laundry_status'] == 'pending'): ?>
+                                <?php if ($b['status'] == 'pending'): ?>
                                     <a href="/bookings/approve/<?= $b['id'] ?>"
                                        class="btn btn-sm btn-info">
                                        Approve
@@ -118,7 +139,12 @@
                                 <?php endif; ?>
 
                                 <!-- PROCESS -->
-                                <?php if ($b['laundry_status'] == 'process'): ?>
+                                <?php if ($b['status'] == 'confirmed' || $b['status'] == 'processing'): ?>
+                                    <a href="/bookings/process/<?= $b['id'] ?>"
+                                       class="btn btn-sm btn-primary">
+                                       Proses
+                                    </a>
+
                                     <a href="/bookings/done/<?= $b['id'] ?>"
                                        class="btn btn-sm btn-success">
                                        Selesai
@@ -133,7 +159,7 @@
                             <!-- STAFF -->
                             <?php else: ?>
 
-                                <?php if ($b['laundry_status'] != 'done'): ?>
+                                <?php if ($b['status'] != 'done' && $b['status'] != 'cancelled'): ?>
                                     <a href="/bookings/process/<?= $b['id'] ?>"
                                        class="btn btn-sm btn-primary">
                                        Proses

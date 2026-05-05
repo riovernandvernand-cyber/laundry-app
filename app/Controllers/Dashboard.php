@@ -4,6 +4,7 @@ namespace App\Controllers;
 
 use App\Models\BookingModel;
 use App\Models\ServiceModel;
+use App\Models\UserModel;
 
 class Dashboard extends BaseController
 {
@@ -18,7 +19,7 @@ class Dashboard extends BaseController
         // ======================
         // TOTAL BOOKING
         // ======================
-        if ($role == 'admin') {
+        if ($role === 'admin' || $role === 'staff') {
             $totalBooking = $bookingModel->countAll();
         } else {
             $totalBooking = $bookingModel
@@ -30,63 +31,46 @@ class Dashboard extends BaseController
         // TOTAL INCOME (ADMIN ONLY)
         // ======================
         $totalIncome = 0;
-        if ($role == 'admin') {
-            $totalIncome = $bookingModel
-                ->where('payment_status', 'confirmed')
-                ->selectSum('total')
-                ->first()['total'] ?? 0;
+        if ($role === 'admin') {
+            $totalIncome = $bookingModel->getTotalIncome();
         }
 
         // ======================
-        // LAYANAN TERPOPULER
+        // LAYANAN TERPOPULER (ADMIN)
         // ======================
         $popularService = null;
-
-        if ($role == 'admin') {
-            $popularService = $bookingModel
-                ->select('service_id, COUNT(*) as total')
-                ->groupBy('service_id')
-                ->orderBy('total', 'DESC')
-                ->first();
-
-            if ($popularService) {
-                $service = $serviceModel->find($popularService['service_id']);
-                $popularService['name'] = $service['name'] ?? '-';
+        if ($role === 'admin') {
+            $popular = $bookingModel->getPopularService();
+            if ($popular) {
+                $service = $serviceModel->find($popular['service_id']);
+                $popularService = [
+                    'name'  => $service['name'] ?? '-',
+                    'total' => $popular['total_booking'],
+                ];
             }
         }
 
         // ======================
-        // RECENT BOOKINGS (🔥 FIX DI SINI)
+        // TOTAL USERS (ADMIN)
         // ======================
-        if ($role == 'admin') {
-            $recentBookings = $bookingModel
-                ->select('bookings.*, 
-                          bookings.booking_date as date,
-                          bookings.booking_time as time,
-                          services.name as service_name')
-                ->join('services', 'services.id = bookings.service_id')
-                ->orderBy('bookings.id', 'DESC')
-                ->limit(5)
-                ->find();
-        } else {
-            $recentBookings = $bookingModel
-                ->select('bookings.*, 
-                          bookings.booking_date as date,
-                          bookings.booking_time as time,
-                          services.name as service_name')
-                ->join('services', 'services.id = bookings.service_id')
-                ->where('bookings.user_id', $userId)
-                ->orderBy('bookings.id', 'DESC')
-                ->limit(5)
-                ->find();
+        $totalUsers = 0;
+        if ($role === 'admin') {
+            $totalUsers = (new UserModel())->where('role', 'pelanggan')->countAllResults();
         }
+
+        // ======================
+        // RECENT BOOKINGS
+        // ======================
+        $builder = $bookingModel->getWithService($userId, $role);
+        $recentBookings = $builder->limit(5)->find();
 
         return view('dashboard/index', [
             'totalBooking'   => $totalBooking,
             'totalIncome'    => $totalIncome,
             'popularService' => $popularService,
+            'totalUsers'     => $totalUsers,
             'recentBookings' => $recentBookings,
-            'role'           => $role
+            'role'           => $role,
         ]);
     }
 }

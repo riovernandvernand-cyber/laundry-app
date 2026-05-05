@@ -8,36 +8,34 @@ use CodeIgniter\Filters\FilterInterface;
 
 class AuthFilter implements FilterInterface
 {
+    /**
+     * Filter sebelum request diproses
+     * Cek apakah user sudah login via session
+     */
     public function before(RequestInterface $request, $arguments = null)
     {
-        // 🔥 Ambil path sekarang (login, dashboard, dll)
-        $uri = service('uri')->getPath();
-
-        // 🔥 HALAMAN YANG BOLEH TANPA LOGIN
-        $allow = [
-            'login',
-            'register',
-            'api/services',
-            'api/booking-status'
-        ];
-
-        if (in_array($uri, $allow)) {
-            return;
-        }
-
-        // 🔒 CEK SESSION LOGIN
+        // Cek session login
         if (!session()->get('logged_in')) {
-
-            // simpan tujuan sebelumnya
+            // Simpan URL tujuan agar bisa redirect setelah login
             session()->set('redirect_url', current_url());
 
             return redirect()->to('/login')
                 ->with('error', 'Silakan login terlebih dahulu');
         }
+
+        // Cek apakah user masih aktif (keamanan tambahan)
+        $userModel = new \App\Models\UserModel();
+        $user = $userModel->find(session()->get('user_id'));
+
+        if (!$user || $user['status'] == 0) {
+            session()->destroy();
+            return redirect()->to('/login')
+                ->with('error', 'Akun Anda telah dinonaktifkan');
+        }
     }
 
     public function after(RequestInterface $request, ResponseInterface $response, $arguments = null)
     {
-        // tidak digunakan
+        // Tidak digunakan
     }
 }

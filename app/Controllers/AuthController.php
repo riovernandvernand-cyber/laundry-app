@@ -11,11 +11,6 @@ class AuthController extends BaseController
     // ======================
     public function login()
     {
-        // 🔥 Kalau sudah login → redirect ke dashboard
-        if (session()->get('logged_in')) {
-            return redirect()->to('/dashboard');
-        }
-
         return view('auth/login');
     }
 
@@ -29,40 +24,57 @@ class AuthController extends BaseController
         $email = $this->request->getPost('email');
         $pass  = $this->request->getPost('password');
 
-        $user = $model->where('email', $email)->first();
+        // Validasi input
+        if (!$this->validate([
+            'email'    => 'required|valid_email',
+            'password' => 'required',
+        ])) {
+            return redirect()->back()
+                ->withInput()
+                ->with('error', 'Email dan password harus diisi dengan benar');
+        }
 
-        // ❌ CEK USER
+        // Cari user berdasarkan email
+        $user = $model->findByEmail($email);
+
+        // Cek user ditemukan
         if (!$user) {
-            return redirect()->back()->with('error', 'Email tidak ditemukan');
+            return redirect()->back()
+                ->withInput()
+                ->with('error', 'Email tidak terdaftar');
         }
 
-        // ❌ CEK PASSWORD
+        // Cek password
         if (!password_verify($pass, $user['password'])) {
-            return redirect()->back()->with('error', 'Password salah');
+            return redirect()->back()
+                ->withInput()
+                ->with('error', 'Password salah');
         }
 
-        // ❌ CEK STATUS AKTIF
+        // Cek status aktif
         if ($user['status'] == 0) {
-            return redirect()->back()->with('error', 'User tidak aktif');
+            return redirect()->back()
+                ->with('error', 'Akun Anda telah dinonaktifkan. Hubungi admin.');
         }
 
-        // ✅ SET SESSION
+        // Set session (multi-role: admin, staff, pelanggan)
         session()->set([
             'user_id'   => $user['id'],
             'name'      => $user['name'],
-            'role'      => $user['role'], // admin / staff / pelanggan
-            'logged_in' => true
+            'email'     => $user['email'],
+            'role'      => $user['role'],
+            'logged_in' => true,
         ]);
 
-        // 🔥 BONUS (PRO LEVEL)
-        // Redirect sesuai role
-        if ($user['role'] == 'admin') {
-            return redirect()->to('/dashboard');
-        } elseif ($user['role'] == 'staff') {
-            return redirect()->to('/dashboard');
-        } else {
-            return redirect()->to('/dashboard'); // nanti bisa dibedakan kalau mau
-        }
+        // Log login berhasil
+        log_message('info', 'LOGIN: User ID=' . $user['id'] . ' Role=' . $user['role']);
+
+        // Redirect ke halaman sebelumnya atau dashboard
+        $redirectUrl = session()->get('redirect_url') ?? '/dashboard';
+        session()->remove('redirect_url');
+
+        return redirect()->to($redirectUrl)
+            ->with('success', 'Selamat datang, ' . $user['name'] . '!');
     }
 
     // ======================
@@ -80,26 +92,27 @@ class AuthController extends BaseController
     {
         $model = new UserModel();
 
-        // 🔥 VALIDASI (biar aman & sesuai dosen)
+        // Validasi ketat
         if (!$this->validate([
-            'name'     => 'required',
+            'name'     => 'required|min_length[2]|max_length[100]',
             'email'    => 'required|valid_email|is_unique[users.email]',
-            'password' => 'required|min_length[4]'
+            'password' => 'required|min_length[6]',
         ])) {
             return redirect()->back()
                 ->withInput()
-                ->with('error', 'Data tidak valid atau email sudah digunakan');
+                ->with('error', 'Data tidak valid. Pastikan email belum digunakan dan password minimal 6 karakter.');
         }
 
-        $model->save([
+        $model->insert([
             'name'     => $this->request->getPost('name'),
             'email'    => $this->request->getPost('email'),
             'password' => password_hash($this->request->getPost('password'), PASSWORD_DEFAULT),
-            'role'     => 'pelanggan', // sesuai DB
-            'status'   => 1
+            'role'     => 'pelanggan',
+            'status'   => 1,
         ]);
 
-        return redirect()->to('/login')->with('success', 'Register berhasil');
+        return redirect()->to('/login')
+            ->with('success', 'Registrasi berhasil! Silakan login.');
     }
 
     // ======================
@@ -107,7 +120,12 @@ class AuthController extends BaseController
     // ======================
     public function logout()
     {
+        $userId = session()->get('user_id');
+        log_message('info', 'LOGOUT: User ID=' . $userId);
+
         session()->destroy();
-        return redirect()->to('/login');
+
+        return redirect()->to('/login')
+            ->with('success', 'Berhasil logout');
     }
 }

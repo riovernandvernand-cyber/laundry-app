@@ -15,6 +15,9 @@ use CodeIgniter\Filters\SecureHeaders;
 
 class Filters extends BaseFilters
 {
+    /**
+     * Alias filter yang tersedia
+     */
     public array $aliases = [
         'csrf'          => CSRF::class,
         'toolbar'       => DebugToolbar::class,
@@ -26,16 +29,14 @@ class Filters extends BaseFilters
         'pagecache'     => PageCache::class,
         'performance'   => PerformanceMetrics::class,
 
-        // 🔥 CUSTOM FILTER
-        'auth' => \App\Filters\AuthFilter::class,
-        'role' => \App\Filters\RoleFilter::class,
+        // Custom Filters
+        'auth'  => \App\Filters\AuthFilter::class,
+        'role'  => \App\Filters\RoleFilter::class,
+        'guest' => \App\Filters\GuestFilter::class,
     ];
 
     public array $required = [
         'before' => [
-            // ⚠️ jangan aktifkan di localhost
-            // 'forcehttps',
-
             'pagecache',
         ],
         'after' => [
@@ -46,18 +47,15 @@ class Filters extends BaseFilters
     ];
 
     public array $globals = [
-        'before' => [
-            // optional keamanan
-            // 'csrf',
-        ],
-        'after' => [],
+        'before' => [],
+        'after'  => [],
     ];
 
     public array $methods = [];
 
-    public array $filters = [
-        // ❌ TIDAK pakai auth di sini
-        // karena sudah diatur di Routes.php
-        // 👉 ini penting biar login tidak ke-block
-    ];
+    /**
+     * Filter berdasarkan URI pattern
+     * Auth dan role diatur via Routes.php untuk kontrol granular
+     */
+    public array $filters = [];
 }

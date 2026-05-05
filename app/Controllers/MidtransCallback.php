@@ -4,6 +4,7 @@ namespace App\Controllers;
 
 use CodeIgniter\Controller;
 use App\Models\BookingModel;
+use App\Models\PaymentModel;
 
 class MidtransCallback extends Controller
 {
@@ -49,7 +50,7 @@ class MidtransCallback extends Controller
         switch ($status) {
             case 'capture':
             case 'settlement':
-                $paymentStatus = 'confirmed';
+                $paymentStatus = 'paid';
                 break;
 
             case 'pending':
@@ -59,25 +60,30 @@ class MidtransCallback extends Controller
             case 'expire':
             case 'cancel':
             case 'deny':
-                $paymentStatus = 'cancelled';
+                $paymentStatus = 'failed';
                 break;
         }
 
         // ======================
         // UPDATE DB
         // ======================
-        $bookingModel = new BookingModel();
-
-        $updateData = [
-            'payment_status' => $paymentStatus
-        ];
-
-        // kalau berhasil bayar
-        if ($paymentStatus === 'confirmed') {
-            $updateData['laundry_status'] = 'pending';
+        $paymentModel = new PaymentModel();
+        
+        // Cari payment berdasarkan booking_id
+        $payment = $paymentModel->where('booking_id', $booking_id)->first();
+        if ($payment) {
+            $paymentModel->update($payment['id'], [
+                'status' => $paymentStatus
+            ]);
         }
 
-        $bookingModel->update($booking_id, $updateData);
+        // kalau berhasil bayar, update status booking jadi confirmed
+        if ($paymentStatus === 'paid') {
+            $bookingModel = new BookingModel();
+            $bookingModel->update($booking_id, [
+                'status' => 'confirmed'
+            ]);
+        }
 
         // ======================
         // LOG DEBUG
@@ -91,7 +97,7 @@ class MidtransCallback extends Controller
         ]);
     }
 
-    private function extractBookingId($order_id)
+    private function extractBookingId(string $order_id)
     {
         // ambil angka dari ORDER-9-xxxx
         if (preg_match('/ORDER-(\d+)/', $order_id, $match)) {
