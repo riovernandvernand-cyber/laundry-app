@@ -12,8 +12,19 @@ class BookingModel extends Model
     protected $useAutoIncrement = true;
 
     protected $allowedFields = [
-        'user_id', 'service_id', 'schedule_id',
-        'weight', 'total', 'status', 'note'
+    'user_id',
+    'service_id',
+    'schedule_id',
+    'weight',
+    'total',
+    'payment_status',
+    'laundry_status',
+    'booking_date',
+    'booking_time',
+    'note',
+    'order_id',
+    'rating',
+    'review'
     ];
 
     protected $useTimestamps = true;
@@ -48,18 +59,25 @@ class BookingModel extends Model
      */
     public function getWithService($userId = null, $role = 'pelanggan')
     {
-        $builder = $this->select('bookings.*, services.name as service_name, schedules.date, schedules.time, payments.status as payment_status, users.name as user_name')
-                        ->join('services', 'services.id = bookings.service_id')
-                        ->join('schedules', 'schedules.id = bookings.schedule_id', 'left')
-                        ->join('payments', 'payments.booking_id = bookings.id', 'left')
-                        ->join('users', 'users.id = bookings.user_id', 'left');
+    $builder = $this->select('
+        bookings.*,
+        bookings.laundry_status,
+        services.name as service_name,
+        schedules.date,
+        schedules.time,
+        payments.status as payment_status,
+        users.name as user_name
+    ')
+    ->join('services', 'services.id = bookings.service_id')
+    ->join('schedules', 'schedules.id = bookings.schedule_id', 'left')
+    ->join('payments', 'payments.booking_id = bookings.id', 'left')
+    ->join('users', 'users.id = bookings.user_id', 'left');
 
-        // Pelanggan hanya lihat miliknya sendiri
-        if ($role === 'pelanggan' && $userId) {
-            $builder->where('bookings.user_id', $userId);
-        }
+    if ($role === 'pelanggan' && $userId) {
+        $builder->where('bookings.user_id', $userId);
+    }
 
-        return $builder->orderBy('bookings.id', 'DESC');
+    return $builder->orderBy('bookings.id', 'DESC');
     }
 
     /**

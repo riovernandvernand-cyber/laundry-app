@@ -44,13 +44,13 @@ class ApiController extends BaseController
         }
 
         // 🔥 FORMAT STATUS BIAR LEBIH JELAS
-        $statusText = match ($booking['status']) {
+        $statusText = match ($booking['laundry_status']) {
             'pending'    => 'Menunggu Pembayaran',
             'confirmed'  => 'Lunas',
             'processing' => 'Sedang Diproses',
             'done'       => 'Selesai',
             'cancelled'  => 'Dibatalkan',
-            default      => $booking['status'],
+            default => $booking['laundry_status'],
         };
 
         return $this->response->setJSON([
@@ -62,7 +62,7 @@ class ApiController extends BaseController
                 'time'         => $booking['booking_time'],
                 'weight'       => $booking['weight'],
                 'total'        => $booking['total'],
-                'status'       => $booking['status'],
+                'status'       => $booking['laundry_status'],
                 'status_text'  => $statusText
             ]
         ]);

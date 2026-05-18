@@ -10,100 +10,107 @@ class MidtransCallback extends Controller
 {
     public function index()
     {
-        // ======================
-        // AMBIL JSON
-        // ======================
-        $json = $this->request->getBody();
-        $data = json_decode($json, true);
+        try {
 
-        log_message('info', 'MIDTRANS CALLBACK: ' . $json);
+            // ======================
+            // AMBIL JSON
+            // ======================
+            $json = $this->request->getBody();
+            $data = json_decode($json, true);
 
-        if (!$data) {
-            return $this->response->setStatusCode(400)->setJSON(['error' => 'Invalid JSON']);
-        }
+            log_message('info', 'MIDTRANS CALLBACK: ' . $json);
 
-        // ======================
-        // AMBIL DATA
-        // ======================
-        $order_id = $data['order_id'] ?? null;
-        $status   = $data['transaction_status'] ?? null;
+            if (!$data) {
+                return $this->response
+                    ->setStatusCode(400)
+                    ->setJSON(['error' => 'Invalid JSON']);
+            }
 
-        if (!$order_id) {
-            return $this->response->setStatusCode(400)->setJSON(['error' => 'No order_id']);
-        }
+            // ======================
+            // DATA
+            // ======================
+            $order_id = $data['order_id'] ?? null;
+            $status   = $data['transaction_status'] ?? null;
 
-        // ======================
-        // AMBIL BOOKING ID (LEBIH AMAN)
-        // ======================
-        $booking_id = $this->extractBookingId($order_id);
+            if (!$order_id) {
+                return $this->response
+                    ->setStatusCode(400)
+                    ->setJSON(['error' => 'Order ID kosong']);
+            }
 
-        if (!$booking_id) {
-            log_message('error', 'BOOKING ID TIDAK VALID: ' . $order_id);
-            return $this->response->setStatusCode(400)->setJSON(['error' => 'Invalid order_id']);
-        }
+            // ======================
+            // AMBIL BOOKING ID
+            // ======================
+            preg_match('/ORDER-(\d+)-/', $order_id, $match);
 
-        // ======================
-        // MAPPING STATUS
-        // ======================
-        $paymentStatus = 'pending';
+            if (!isset($match[1])) {
+                return $this->response
+                    ->setStatusCode(400)
+                    ->setJSON(['error' => 'Format order salah']);
+            }
 
-        switch ($status) {
-            case 'capture':
-            case 'settlement':
+            $booking_id = $match[1];
+
+            // ======================
+            // MODEL
+            // ======================
+            $paymentModel = new PaymentModel();
+            $bookingModel = new BookingModel();
+
+            // ======================
+            // CARI PAYMENT
+            // ======================
+            $payment = $paymentModel
+                ->where('booking_id', $booking_id)
+                ->first();
+
+            if (!$payment) {
+                return $this->response
+                    ->setStatusCode(404)
+                    ->setJSON(['error' => 'Payment tidak ditemukan']);
+            }
+
+            // ======================
+            // STATUS
+            // ======================
+            $paymentStatus = 'pending';
+
+            if ($status == 'capture' || $status == 'settlement') {
                 $paymentStatus = 'paid';
-                break;
-
-            case 'pending':
-                $paymentStatus = 'pending';
-                break;
-
-            case 'expire':
-            case 'cancel':
-            case 'deny':
+            } elseif ($status == 'expire' || $status == 'cancel' || $status == 'deny') {
                 $paymentStatus = 'failed';
-                break;
-        }
+            }
 
-        // ======================
-        // UPDATE DB
-        // ======================
-        $paymentModel = new PaymentModel();
-        
-        // Cari payment berdasarkan booking_id
-        $payment = $paymentModel->where('booking_id', $booking_id)->first();
-        if ($payment) {
+            // ======================
+            // UPDATE PAYMENT
+            // ======================
             $paymentModel->update($payment['id'], [
                 'status' => $paymentStatus
             ]);
-        }
 
-        // kalau berhasil bayar, update status booking jadi confirmed
-        if ($paymentStatus === 'paid') {
-            $bookingModel = new BookingModel();
-            $bookingModel->update($booking_id, [
-                'status' => 'confirmed'
+            // ======================
+            // UPDATE BOOKING
+            // ======================
+            if ($paymentStatus == 'paid') {
+
+                $bookingModel->update($booking_id, [
+                    'payment_status' => 'paid'
+                ]);
+            }
+
+            return $this->response->setJSON([
+                'success' => true
             ]);
+
+        } catch (\Throwable $e) {
+
+            log_message('error', $e->getMessage());
+
+            return $this->response
+                ->setStatusCode(500)
+                ->setJSON([
+                    'error' => $e->getMessage()
+                ]);
         }
-
-        // ======================
-        // LOG DEBUG
-        // ======================
-        log_message('info', 'BOOKING UPDATED: ID=' . $booking_id . ' STATUS=' . $paymentStatus);
-
-        return $this->response->setJSON([
-            'message' => 'OK',
-            'booking_id' => $booking_id,
-            'status' => $paymentStatus
-        ]);
-    }
-
-    private function extractBookingId(string $order_id)
-    {
-        // ambil angka dari ORDER-9-xxxx
-        if (preg_match('/ORDER-(\d+)/', $order_id, $match)) {
-            return $match[1];
-        }
-
-        return null;
     }
 }

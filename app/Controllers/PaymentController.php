@@ -5,9 +5,13 @@ namespace App\Controllers;
 use Midtrans\Config;
 use Midtrans\Notification;
 use App\Models\BookingModel;
+use App\Models\PaymentModel;
 
-class Payment extends BaseController
+class PaymentController extends BaseController
 {
+    // ======================
+    // CALLBACK MIDTRANS
+    // ======================
     public function callback()
     {
         Config::$serverKey = getenv('MIDTRANS_SERVER_KEY');
@@ -16,19 +20,80 @@ class Payment extends BaseController
         $notif = new Notification();
 
         $transaction = $notif->transaction_status;
-        $order_id = $notif->order_id;
+        $order_id    = $notif->order_id;
 
-        $model = new BookingModel();
+        $paymentModel = new PaymentModel();
 
-        // 🔥 Update status sesuai transaksi
-        if ($transaction == 'settlement' || $transaction == 'capture') {
-            $model->update($order_id, ['status' => 'paid']);
-        } elseif ($transaction == 'pending') {
-            $model->update($order_id, ['status' => 'pending']);
-        } elseif ($transaction == 'expire' || $transaction == 'cancel') {
-            $model->update($order_id, ['status' => 'failed']);
+        // Cari payment berdasarkan order id
+        $payment = $paymentModel
+            ->where('midtrans_order_id', $order_id)
+            ->first();
+
+        if (!$payment) {
+            return response()->setJSON([
+                'message' => 'Payment tidak ditemukan'
+            ]);
         }
 
-        return response()->setJSON(['status' => 'ok']);
+        // ======================
+        // UPDATE STATUS PAYMENT
+        // ======================
+        if ($transaction == 'settlement' || $transaction == 'capture') {
+
+            $paymentModel->update($payment['id'], [
+                'status'  => 'paid',
+                'paid_at' => date('Y-m-d H:i:s')
+            ]);
+
+            // UPDATE BOOKING
+            $bookingModel = new BookingModel();
+
+            $bookingModel->update($payment['booking_id'], [
+                'payment_status' => 'paid'
+            ]);
+
+        } elseif ($transaction == 'pending') {
+
+            $paymentModel->update($payment['id'], [
+                'status' => 'pending'
+            ]);
+
+        } elseif ($transaction == 'expire' || $transaction == 'cancel') {
+
+            $paymentModel->update($payment['id'], [
+                'status' => 'failed'
+            ]);
+        }
+
+        return response()->setJSON([
+            'status' => 'ok'
+        ]);
+    }
+
+    // ======================
+    // REDIRECT SUCCESS
+    // ======================
+    public function finish()
+    {
+        return redirect()->to('/bookings')
+            ->with('success', 'Pembayaran berhasil!');
+    }
+
+    // ======================
+    // REDIRECT BELUM SELESAI
+    // ======================
+    public function unfinish()
+    {
+        return redirect()->to('/bookings')
+            ->with('warning', 'Pembayaran belum selesai.');
+    }
+
+    // ======================
+    // REDIRECT ERROR
+    // ======================
+    public function error()
+    {
+        return redirect()->to('/bookings')
+            ->with('error', 'Pembayaran gagal.');
     }
 }
