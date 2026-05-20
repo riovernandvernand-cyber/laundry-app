@@ -10,7 +10,7 @@ use CodeIgniter\Router\RouteCollection;
 // DEFAULT
 // ======================
 $routes->get('/', 'Home::index');
-
+$routes->get('/home', 'Home::index');
 
 // ======================
 // API PUBLIC
