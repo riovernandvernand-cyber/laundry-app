@@ -13,15 +13,14 @@ $routes->get('/', 'Home::index');
 $routes->get('/home', 'Home::index');
 
 // ======================
-// API PUBLIC
+// API RESTFUL SERVER (PROTECTED BY API-AUTH)
 // ======================
-$routes->group('api', function ($routes) {
+$routes->group('api', ['filter' => 'api-auth'], function ($routes) {
 
     $routes->get('services', 'ApiController::services');
     $routes->get('booking-status/(:num)', 'ApiController::bookingStatus/$1');
 
 });
-
 
 // ======================
 // AUTH GUEST
@@ -36,12 +35,10 @@ $routes->group('', ['filter' => 'guest'], function ($routes) {
 
 });
 
-
 // ======================
 // LOGOUT
 // ======================
 $routes->get('logout', 'AuthController::logout', ['filter' => 'auth']);
-
 
 // ======================
 // MIDTRANS
@@ -49,14 +46,12 @@ $routes->get('logout', 'AuthController::logout', ['filter' => 'auth']);
 $routes->post('midtrans/notification', 'MidtransCallback::index');
 $routes->get('midtrans/notification', 'MidtransCallback::index');
 
-
 // ======================
 // PAYMENT REDIRECT
 // ======================
 $routes->get('payment/finish', 'PaymentController::finish');
 $routes->get('payment/unfinish', 'PaymentController::unfinish');
 $routes->get('payment/error', 'PaymentController::error');
-
 
 // ======================
 // PROTECTED ROUTES
@@ -67,7 +62,6 @@ $routes->group('', ['filter' => 'auth'], function ($routes) {
     // DASHBOARD
     // ======================
     $routes->get('dashboard', 'Dashboard::index');
-
 
     // ======================
     // SERVICES
@@ -86,7 +80,6 @@ $routes->group('', ['filter' => 'auth'], function ($routes) {
 
     });
 
-
     // ======================
     // SCHEDULES
     // ======================
@@ -104,7 +97,6 @@ $routes->group('', ['filter' => 'auth'], function ($routes) {
 
     });
 
-
     // ======================
     // USERS
     // ======================
@@ -115,44 +107,44 @@ $routes->group('', ['filter' => 'auth'], function ($routes) {
 
     });
 
-
     // ======================
-// BOOKINGS
-// ======================
-$routes->group('bookings', function ($routes) {
+    // BOOKINGS
+    // ======================
+    $routes->group('bookings', function ($routes) {
 
-    // LIST
-    $routes->get('', 'BookingController::index');
+        $routes->get('get-kota', 'BookingController::getKota');
 
-    // MIDTRANS REDIRECT
-    $routes->get('finish', 'PaymentController::finish');
-    $routes->get('unfinish', 'PaymentController::unfinish');
-    $routes->get('error', 'PaymentController::error');
+        // LIST
+        $routes->get('', 'BookingController::index');
 
-    // CREATE
-    $routes->get('create', 'BookingController::create');
-    $routes->post('store', 'BookingController::store');
+        // MIDTRANS REDIRECT
+        $routes->get('finish', 'PaymentController::finish');
+        $routes->get('unfinish', 'PaymentController::unfinish');
+        $routes->get('error', 'PaymentController::error');
 
-    // PAYMENT
-    $routes->get('pay/(:num)', 'BookingController::pay/$1');
+        // CREATE
+        $routes->get('create', 'BookingController::create');
+        $routes->post('store', 'BookingController::store');
 
-    // CANCEL
-    $routes->get('cancel/(:num)', 'BookingController::cancel/$1');
+        // PAYMENT
+        $routes->get('pay/(:num)', 'BookingController::pay/$1');
 
-    // PRINT
-    $routes->get('print/(:num)', 'BookingController::printBooking/$1');
+        // CANCEL
+        $routes->get('cancel/(:num)', 'BookingController::cancel/$1');
 
-    // APPROVE / REJECT
-    $routes->get('approve/(:num)', 'BookingController::approve/$1', ['filter' => 'role:admin']);
-    $routes->get('reject/(:num)', 'BookingController::reject/$1', ['filter' => 'role:admin']);
+        // PRINT
+        $routes->get('print/(:num)', 'BookingController::printBooking/$1');
 
-    // PROCESS
-    $routes->get('process/(:num)', 'BookingController::process/$1', ['filter' => 'role:admin,staff']);
+        // APPROVE / REJECT
+        $routes->get('approve/(:num)', 'BookingController::approve/$1', ['filter' => 'role:admin']);
+        $routes->get('reject/(:num)', 'BookingController::reject/$1', ['filter' => 'role:admin']);
 
-    // DONE
-    $routes->get('done/(:num)', 'BookingController::done/$1', ['filter' => 'role:admin,staff']);
+        // PROCESS
+        $routes->get('process/(:num)', 'BookingController::process/$1', ['filter' => 'role:admin,staff']);
+
+        // DONE
+        $routes->get('done/(:num)', 'BookingController::done/$1', ['filter' => 'role:admin,staff']);
 
     });
 
 });
-

@@ -2,69 +2,44 @@
 
 namespace App\Controllers;
 
+use CodeIgniter\RESTful\ResourceController;
 use App\Models\ServiceModel;
 use App\Models\BookingModel;
 
-class ApiController extends BaseController
+class ApiController extends ResourceController
 {
-    // ======================
-    // GET /api/services
-    // ======================
+    protected $format = 'json';
+
     public function services()
     {
-        $model = new ServiceModel();
+        $serviceModel = new ServiceModel();
+        $data = $serviceModel->findAll();
 
-        $data = $model->findAll();
-
-        return $this->response->setJSON([
-            'status' => 'success',
-            'total'  => count($data),
-            'data'   => $data
-        ]);
+        return $this->respond([
+            'status' => 200,
+            'message' => 'Daftar layanan laundry berhasil diambil.',
+            'data' => $data
+        ], 200);
     }
 
-    // ======================
-    // GET /api/booking-status/{id}
-    // ======================
-    public function bookingStatus($id)
+    public function bookingStatus($id = null)
     {
-        $model = new BookingModel();
-
-        $booking = $model
-            ->select('bookings.*, services.name as service_name')
-            ->join('services', 'services.id = bookings.service_id')
-            ->where('bookings.id', $id)
-            ->first();
+        $bookingModel = new BookingModel();
+        $booking = $bookingModel->find($id);
 
         if (!$booking) {
-            return $this->response->setJSON([
-                'status' => 'error',
-                'message' => 'Booking tidak ditemukan'
-            ]);
+            return $this->failNotFound('Data pemesanan dengan ID ' . $id . ' tidak ditemukan.');
         }
 
-        // 🔥 FORMAT STATUS BIAR LEBIH JELAS
-        $statusText = match ($booking['laundry_status']) {
-            'pending'    => 'Menunggu Pembayaran',
-            'confirmed'  => 'Lunas',
-            'processing' => 'Sedang Diproses',
-            'done'       => 'Selesai',
-            'cancelled'  => 'Dibatalkan',
-            default => $booking['laundry_status'],
-        };
-
-        return $this->response->setJSON([
-            'status' => 'success',
-            'data'   => [
-                'id'           => $booking['id'],
-                'service'      => $booking['service_name'],
-                'date'         => $booking['booking_date'],
-                'time'         => $booking['booking_time'],
-                'weight'       => $booking['weight'],
-                'total'        => $booking['total'],
-                'status'       => $booking['laundry_status'],
-                'status_text'  => $statusText
+        return $this->respond([
+            'status' => 200,
+            'message' => 'Status pemesanan berhasil ditemukan.',
+            'data' => [
+                'id_booking' => $booking['id'],
+                'status_order' => $booking['status'] ?? 'pending',
+                'total_harga' => $booking['total'] ?? 0,
+                'updated_at' => $booking['updated_at'] ?? null
             ]
-        ]);
+        ], 200);
     }
 }

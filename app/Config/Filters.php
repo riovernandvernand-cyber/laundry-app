@@ -19,20 +19,22 @@ class Filters extends BaseFilters
      * Alias filter yang tersedia
      */
     public array $aliases = [
-        'csrf'          => CSRF::class,
-        'toolbar'       => DebugToolbar::class,
-        'honeypot'      => Honeypot::class,
-        'invalidchars'  => InvalidChars::class,
+        'csrf' => CSRF::class,
+        'toolbar' => DebugToolbar::class,
+        'honeypot' => Honeypot::class,
+        'invalidchars' => InvalidChars::class,
         'secureheaders' => SecureHeaders::class,
-        'cors'          => Cors::class,
-        'forcehttps'    => ForceHTTPS::class,
-        'pagecache'     => PageCache::class,
-        'performance'   => PerformanceMetrics::class,
+        'cors' => Cors::class,
+        'forcehttps' => ForceHTTPS::class,
+        'pagecache' => PageCache::class,
+        'performance' => PerformanceMetrics::class,
+
 
         // Custom Filters
-        'auth'  => \App\Filters\AuthFilter::class,
-        'role'  => \App\Filters\RoleFilter::class,
+        'auth' => \App\Filters\AuthFilter::class,
         'guest' => \App\Filters\GuestFilter::class,
+        'role' => \App\Filters\RoleFilter::class,
+        'api-auth' => \App\Filters\ApiAuthFilter::class,
     ];
 
     public array $required = [
@@ -48,7 +50,7 @@ class Filters extends BaseFilters
 
     public array $globals = [
         'before' => [],
-        'after'  => [],
+        'after' => [],
     ];
 
     public array $methods = [];

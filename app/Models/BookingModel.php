@@ -6,39 +6,39 @@ use CodeIgniter\Model;
 
 class BookingModel extends Model
 {
-    protected $table         = 'bookings';
-    protected $primaryKey    = 'id';
-    protected $returnType    = 'array';
+    protected $table = 'bookings';
+    protected $primaryKey = 'id';
+    protected $returnType = 'array';
     protected $useAutoIncrement = true;
 
     protected $allowedFields = [
-    'user_id',
-    'service_id',
-    'schedule_id',
-    'weight',
-    'total',
-    'payment_status',
-    'laundry_status',
-    'booking_date',
-    'booking_time',
-    'note',
-    'order_id',
-    'rating',
-    'review'
+        'user_id',
+        'service_id',
+        'schedule_id',
+        'weight',
+        'total',
+        'payment_status',
+        'laundry_status',
+        'booking_date',
+        'booking_time',
+        'note',
+        'order_id',
+        'rating',
+        'review'
     ];
 
     protected $useTimestamps = true;
-    protected $createdField  = 'created_at';
-    protected $updatedField  = 'updated_at';
+    protected $createdField = 'created_at';
+    protected $updatedField = 'updated_at';
 
     // ======================
     // VALIDASI
     // ======================
     protected $validationRules = [
-        'user_id'    => 'required|integer',
+        'user_id' => 'required|integer',
         'service_id' => 'required|integer',
-        'weight'     => 'required|integer|greater_than[0]',
-        'total'      => 'required|integer|greater_than[0]',
+        'weight' => 'required|integer|greater_than[0]',
+        'total' => 'required|integer|greater_than[0]',
     ];
 
     protected $validationMessages = [
@@ -59,25 +59,25 @@ class BookingModel extends Model
      */
     public function getWithService($userId = null, $role = 'pelanggan')
     {
-    $builder = $this->select('
+        $builder = $this->select('
         bookings.*,
-        bookings.laundry_status,
+        bookings.status as laundry_status,
         services.name as service_name,
         schedules.date,
         schedules.time,
         payments.status as payment_status,
         users.name as user_name
     ')
-    ->join('services', 'services.id = bookings.service_id')
-    ->join('schedules', 'schedules.id = bookings.schedule_id', 'left')
-    ->join('payments', 'payments.booking_id = bookings.id', 'left')
-    ->join('users', 'users.id = bookings.user_id', 'left');
+            ->join('services', 'services.id = bookings.service_id')
+            ->join('schedules', 'schedules.id = bookings.schedule_id', 'left')
+            ->join('payments', 'payments.booking_id = bookings.id', 'left')
+            ->join('users', 'users.id = bookings.user_id', 'left');
 
-    if ($role === 'pelanggan' && $userId) {
-        $builder->where('bookings.user_id', $userId);
-    }
+        if ($role === 'pelanggan' && $userId) {
+            $builder->where('bookings.user_id', $userId);
+        }
 
-    return $builder->orderBy('bookings.id', 'DESC');
+        return $builder->orderBy('bookings.id', 'DESC');
     }
 
     /**
@@ -87,8 +87,8 @@ class BookingModel extends Model
     {
         $paymentModel = new PaymentModel();
         $result = $paymentModel->where('status', 'paid')
-                               ->selectSum('amount')
-                               ->first();
+            ->selectSum('amount')
+            ->first();
         return $result['amount'] ?? 0;
     }
 
@@ -98,9 +98,9 @@ class BookingModel extends Model
     public function getPopularService()
     {
         return $this->select('service_id, COUNT(*) as total_booking')
-                    ->groupBy('service_id')
-                    ->orderBy('total_booking', 'DESC')
-                    ->first();
+            ->groupBy('service_id')
+            ->orderBy('total_booking', 'DESC')
+            ->first();
     }
 
     /**
@@ -109,6 +109,6 @@ class BookingModel extends Model
     public function isOwnedBy(int $bookingId, int $userId): bool
     {
         $booking = $this->find($bookingId);
-        return $booking && (int)$booking['user_id'] === $userId;
+        return $booking && (int) $booking['user_id'] === $userId;
     }
 }

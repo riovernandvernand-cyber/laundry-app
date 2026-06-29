@@ -1,4 +1,4 @@
-<?= $this->extend('layout') ?>
+<?= $this->extend('layouts/main') ?>
 <?= $this->section('content') ?>
 
 <div class="card shadow">
@@ -18,7 +18,7 @@
         </form>
 
         <!-- ALERT -->
-        <?php if(session()->getFlashdata('success')): ?>
+        <?php if (session()->getFlashdata('success')): ?>
             <div class="alert alert-success">
                 <?= session()->getFlashdata('success'); ?>
             </div>
@@ -35,18 +35,17 @@
                 </thead>
 
                 <tbody>
-                <?php foreach ($services as $s): ?>
-                    <tr>
-                        <td><?= $s['name']; ?></td>
-                        <td>Rp <?= number_format($s['price'], 0, ',', '.'); ?></td>
-                        <td>
-                            <a href="/services/edit/<?= $s['id']; ?>" class="btn btn-warning btn-sm">Edit</a>
-                            <a href="/services/delete/<?= $s['id']; ?>" 
-                               class="btn btn-danger btn-sm"
-                               onclick="return confirm('Yakin hapus?')">Hapus</a>
-                        </td>
-                    </tr>
-                <?php endforeach; ?>
+                    <?php foreach ($services as $s): ?>
+                        <tr>
+                            <td><?= $s['name']; ?></td>
+                            <td>Rp <?= number_format($s['price'], 0, ',', '.'); ?></td>
+                            <td>
+                                <a href="/services/edit/<?= $s['id']; ?>" class="btn btn-warning btn-sm">Edit</a>
+                                <a href="/services/delete/<?= $s['id']; ?>" class="btn btn-danger btn-sm"
+                                    onclick="return confirm('Yakin hapus?')">Hapus</a>
+                            </td>
+                        </tr>
+                    <?php endforeach; ?>
                 </tbody>
             </table>
         <?php else: ?>

@@ -1,4 +1,4 @@
-<?= $this->extend('layout') ?>
+<?= $this->extend('layouts/main') ?>
 <?= $this->section('content') ?>
 
 <h4>Data Jadwal</h4>
@@ -14,12 +14,12 @@
     </tr>
 
     <?php foreach ($schedules as $s): ?>
-    <tr>
-        <td><?= $s['name'] ?></td>
-        <td><?= $s['date'] ?></td>
-        <td><?= $s['time'] ?></td>
-        <td><?= $s['capacity'] ?></td>
-    </tr>
+        <tr>
+            <td><?= $s['name'] ?></td>
+            <td><?= $s['date'] ?></td>
+            <td><?= $s['time'] ?></td>
+            <td><?= $s['capacity'] ?></td>
+        </tr>
     <?php endforeach; ?>
 </table>
 

@@ -35,22 +35,22 @@
 
         <!-- TOTAL INCOME -->
         <?php if ($role == 'admin'): ?>
-        <div class="col-md-4">
-            <div class="card bg-success text-white p-3 shadow-sm">
-                <h6>Total Pendapatan</h6>
-                <h3>Rp <?= number_format($totalIncome, 0, ',', '.') ?></h3>
+            <div class="col-md-4">
+                <div class="card bg-success text-white p-3 shadow-sm">
+                    <h6>Total Pendapatan</h6>
+                    <h3>Rp <?= number_format($totalIncome, 0, ',', '.') ?></h3>
+                </div>
             </div>
-        </div>
         <?php endif; ?>
 
         <!-- LAYANAN TERPOPULER -->
         <?php if ($role == 'admin'): ?>
-        <div class="col-md-4">
-            <div class="card bg-warning text-dark p-3 shadow-sm">
-                <h6>Layanan Terpopuler</h6>
-                <h4><?= $popularService['name'] ?? '-' ?></h4>
+            <div class="col-md-4">
+                <div class="card bg-warning text-dark p-3 shadow-sm">
+                    <h6>Layanan Terpopuler</h6>
+                    <h4><?= $popularService['name'] ?? '-' ?></h4>
+                </div>
             </div>
-        </div>
         <?php endif; ?>
 
     </div>
@@ -85,161 +85,157 @@
 
             <tbody>
 
-            <?php if (!empty($recentBookings)): ?>
+                <?php if (!empty($recentBookings)): ?>
 
-                <?php foreach ($recentBookings as $b): ?>
+                    <?php foreach ($recentBookings as $b): ?>
+
+                        <tr>
+
+                            <!-- LAYANAN -->
+                            <td>
+                                <?= esc($b['service_name'] ?? '-') ?>
+                            </td>
+
+                            <!-- PELANGGAN -->
+                            <?php if ($role != 'pelanggan'): ?>
+                                <td>
+                                    <?= esc($b['user_name'] ?? '-') ?>
+                                </td>
+                            <?php endif; ?>
+
+                            <!-- TANGGAL -->
+                            <td>
+                                <?= esc($b['date'] ?? '-') ?>
+                            </td>
+
+                            <!-- STATUS -->
+                            <td>
+
+                                <?php if (($b['laundry_status'] ?? '') == 'pending'): ?>
+
+                                    <span class="badge bg-secondary">
+                                        Pending
+                                    </span>
+
+                                <?php elseif (($b['laundry_status'] ?? '') == 'confirmed'): ?>
+
+                                    <span class="badge bg-info">
+                                        Dikonfirmasi
+                                    </span>
+
+                                <?php elseif (($b['laundry_status'] ?? '') == 'processing'): ?>
+
+                                    <span class="badge bg-primary">
+                                        Diproses
+                                    </span>
+
+                                <?php elseif (($b['laundry_status'] ?? '') == 'done'): ?>
+
+                                    <span class="badge bg-success">
+                                        Selesai
+                                    </span>
+
+                                <?php elseif (($b['laundry_status'] ?? '') == 'cancelled'): ?>
+
+                                    <span class="badge bg-danger">
+                                        Dibatalkan
+                                    </span>
+
+                                <?php else: ?>
+
+                                    <span class="badge bg-dark">
+                                        Unknown
+                                    </span>
+
+                                <?php endif; ?>
+
+                            </td>
+
+                            <!-- AKSI -->
+                            <?php if ($role != 'pelanggan'): ?>
+
+                                <td>
+
+                                    <!-- PENDING -->
+                                    <?php if (($b['laundry_status'] ?? '') == 'pending'): ?>
+
+                                        <a href="/bookings/approve/<?= $b['id'] ?>" class="btn btn-sm btn-info"
+                                            onclick="return confirm('Approve booking ini?')">
+                                            Approve
+                                        </a>
+
+                                        <a href="/bookings/reject/<?= $b['id'] ?>" class="btn btn-sm btn-danger"
+                                            onclick="return confirm('Reject booking ini?')">
+                                            Reject
+                                        </a>
+
+
+
+
+
+                                        <!-- CONFIRMED -->
+                                    <?php elseif (($b['laundry_status'] ?? '') == 'confirmed'): ?>
+
+                                        <a href="/bookings/process/<?= $b['id'] ?>" class="btn btn-sm btn-primary"
+                                            onclick="return confirm('Proses laundry ini?')">
+                                            Proses
+                                        </a>
+
+
+
+
+
+                                        <!-- PROCESSING -->
+                                    <?php elseif (($b['laundry_status'] ?? '') == 'processing'): ?>
+
+                                        <a href="/bookings/done/<?= $b['id'] ?>" class="btn btn-sm btn-success"
+                                            onclick="return confirm('Selesaikan laundry ini?')">
+                                            Selesai
+                                        </a>
+
+
+
+
+
+                                        <!-- DONE -->
+                                    <?php elseif (($b['laundry_status'] ?? '') == 'done'): ?>
+
+                                        <span class="badge bg-success">
+                                            ✔ Sudah selesai
+                                        </span>
+
+
+
+
+
+                                        <!-- CANCELLED -->
+                                    <?php elseif (($b['laundry_status'] ?? '') == 'cancelled'): ?>
+
+                                        <span class="badge bg-danger">
+                                            Booking dibatalkan
+                                        </span>
+
+                                    <?php endif; ?>
+
+                                </td>
+
+                            <?php endif; ?>
+
+                        </tr>
+
+                    <?php endforeach; ?>
+
+                <?php else: ?>
 
                     <tr>
 
-                        <!-- LAYANAN -->
-                        <td>
-                            <?= esc($b['service_name'] ?? '-') ?>
+                        <td colspan="5" class="text-center text-muted">
+                            Belum ada data booking
                         </td>
-
-                        <!-- PELANGGAN -->
-                        <?php if ($role != 'pelanggan'): ?>
-                        <td>
-                            <?= esc($b['user_name'] ?? '-') ?>
-                        </td>
-                        <?php endif; ?>
-
-                        <!-- TANGGAL -->
-                        <td>
-                            <?= esc($b['date'] ?? '-') ?>
-                        </td>
-
-                        <!-- STATUS -->
-                        <td>
-
-                            <?php if (($b['laundry_status'] ?? '') == 'pending'): ?>
-
-                                <span class="badge bg-secondary">
-                                    Pending
-                                </span>
-
-                            <?php elseif (($b['laundry_status'] ?? '') == 'confirmed'): ?>
-
-                                <span class="badge bg-info">
-                                    Dikonfirmasi
-                                </span>
-
-                            <?php elseif (($b['laundry_status'] ?? '') == 'processing'): ?>
-
-                                <span class="badge bg-primary">
-                                    Diproses
-                                </span>
-
-                            <?php elseif (($b['laundry_status'] ?? '') == 'done'): ?>
-
-                                <span class="badge bg-success">
-                                    Selesai
-                                </span>
-
-                            <?php elseif (($b['laundry_status'] ?? '') == 'cancelled'): ?>
-
-                                <span class="badge bg-danger">
-                                    Dibatalkan
-                                </span>
-
-                            <?php else: ?>
-
-                                <span class="badge bg-dark">
-                                    Unknown
-                                </span>
-
-                            <?php endif; ?>
-
-                        </td>
-
-                        <!-- AKSI -->
-                        <?php if ($role != 'pelanggan'): ?>
-
-                        <td>
-
-                            <!-- PENDING -->
-                            <?php if (($b['laundry_status'] ?? '') == 'pending'): ?>
-
-                                <a href="/bookings/approve/<?= $b['id'] ?>"
-                                   class="btn btn-sm btn-info"
-                                   onclick="return confirm('Approve booking ini?')">
-                                    Approve
-                                </a>
-
-                                <a href="/bookings/reject/<?= $b['id'] ?>"
-                                   class="btn btn-sm btn-danger"
-                                   onclick="return confirm('Reject booking ini?')">
-                                    Reject
-                                </a>
-
-
-
-
-
-                            <!-- CONFIRMED -->
-                            <?php elseif (($b['laundry_status'] ?? '') == 'confirmed'): ?>
-
-                                <a href="/bookings/process/<?= $b['id'] ?>"
-                                   class="btn btn-sm btn-primary"
-                                   onclick="return confirm('Proses laundry ini?')">
-                                    Proses
-                                </a>
-
-
-
-
-
-                            <!-- PROCESSING -->
-                            <?php elseif (($b['laundry_status'] ?? '') == 'processing'): ?>
-
-                                <a href="/bookings/done/<?= $b['id'] ?>"
-                                   class="btn btn-sm btn-success"
-                                   onclick="return confirm('Selesaikan laundry ini?')">
-                                    Selesai
-                                </a>
-
-
-
-
-
-                            <!-- DONE -->
-                            <?php elseif (($b['laundry_status'] ?? '') == 'done'): ?>
-
-                                <span class="badge bg-success">
-                                    ✔ Sudah selesai
-                                </span>
-
-
-
-
-
-                            <!-- CANCELLED -->
-                            <?php elseif (($b['laundry_status'] ?? '') == 'cancelled'): ?>
-
-                                <span class="badge bg-danger">
-                                    Booking dibatalkan
-                                </span>
-
-                            <?php endif; ?>
-
-                        </td>
-
-                        <?php endif; ?>
 
                     </tr>
 
-                <?php endforeach; ?>
-
-            <?php else: ?>
-
-                <tr>
-
-                    <td colspan="5" class="text-center text-muted">
-                        Belum ada data booking
-                    </td>
-
-                </tr>
-
-            <?php endif; ?>
+                <?php endif; ?>
 
             </tbody>
 
