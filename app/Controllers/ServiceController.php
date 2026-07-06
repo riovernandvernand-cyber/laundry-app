@@ -23,12 +23,12 @@ class ServiceController extends BaseController
         $data['services'] = $this->serviceModel->findAll();
         $data['role'] = $role;
 
-        return view('services/index', $data);
+        return view('admin/services/index', $data);
     }
 
     public function create()
     {
-        return view('services/create');
+        return view('admin/services/create');
     }
 
     public function store()
@@ -81,7 +81,7 @@ class ServiceController extends BaseController
     public function edit($id)
     {
         $data['service'] = $this->serviceModel->find($id);
-        return view('services/edit', $data);
+        return view('admin/services/edit', $data);
     }
 
     public function update($id)

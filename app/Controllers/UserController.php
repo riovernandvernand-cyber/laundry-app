@@ -13,7 +13,7 @@ class UserController extends BaseController
     {
         $model = new UserModel();
 
-        return view('users/index', [
+        return view('admin/users/index', [
             'users' => $model->orderBy('id', 'ASC')->findAll(),
         ]);
     }
@@ -24,14 +24,14 @@ class UserController extends BaseController
     public function toggleStatus($id)
     {
         $model = new UserModel();
-        $user  = $model->find($id);
+        $user = $model->find($id);
 
         if (!$user) {
             return redirect()->back()->with('error', 'User tidak ditemukan');
         }
 
         // Admin tidak bisa menonaktifkan diri sendiri
-        if ((int)$id === (int)session()->get('user_id')) {
+        if ((int) $id === (int) session()->get('user_id')) {
             return redirect()->back()->with('error', 'Tidak bisa menonaktifkan akun sendiri');
         }
 

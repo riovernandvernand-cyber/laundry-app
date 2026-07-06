@@ -20,7 +20,7 @@ class ScheduleController extends BaseController
             ->orderBy('date', 'ASC')
             ->findAll();
 
-        return view('schedules/index', $data);
+        return view('admin/schedules/index', $data);
     }
 
     // ======================
@@ -32,7 +32,7 @@ class ScheduleController extends BaseController
 
         $data['services'] = $serviceModel->findAll();
 
-        return view('schedules/create', $data);
+        return view('admin/schedules/create', $data);
     }
 
     // ======================
@@ -43,20 +43,22 @@ class ScheduleController extends BaseController
         $model = new ScheduleModel();
 
         // 🔥 VALIDASI
-        if (!$this->validate([
-            'service_id' => 'required',
-            'date'       => 'required',
-            'time'       => 'required',
-            'capacity'   => 'required|greater_than[0]'
-        ])) {
+        if (
+            !$this->validate([
+                'service_id' => 'required',
+                'date' => 'required',
+                'time' => 'required',
+                'capacity' => 'required|greater_than[0]'
+            ])
+        ) {
             return redirect()->back()->withInput()->with('error', 'Data tidak valid');
         }
 
         $model->save([
             'service_id' => $this->request->getPost('service_id'),
-            'date'       => $this->request->getPost('date'),
-            'time'       => $this->request->getPost('time'),
-            'capacity'   => $this->request->getPost('capacity'),
+            'date' => $this->request->getPost('date'),
+            'time' => $this->request->getPost('time'),
+            'capacity' => $this->request->getPost('capacity'),
         ]);
 
         return redirect()->to('/schedules')->with('success', 'Jadwal berhasil ditambahkan');
@@ -83,20 +85,22 @@ class ScheduleController extends BaseController
     {
         $model = new ScheduleModel();
 
-        if (!$this->validate([
-            'service_id' => 'required',
-            'date'       => 'required',
-            'time'       => 'required',
-            'capacity'   => 'required|greater_than[0]'
-        ])) {
+        if (
+            !$this->validate([
+                'service_id' => 'required',
+                'date' => 'required',
+                'time' => 'required',
+                'capacity' => 'required|greater_than[0]'
+            ])
+        ) {
             return redirect()->back()->withInput()->with('error', 'Data tidak valid');
         }
 
         $model->update($id, [
             'service_id' => $this->request->getPost('service_id'),
-            'date'       => $this->request->getPost('date'),
-            'time'       => $this->request->getPost('time'),
-            'capacity'   => $this->request->getPost('capacity'),
+            'date' => $this->request->getPost('date'),
+            'time' => $this->request->getPost('time'),
+            'capacity' => $this->request->getPost('capacity'),
         ]);
 
         return redirect()->to('/schedules')->with('success', 'Jadwal berhasil diupdate');
