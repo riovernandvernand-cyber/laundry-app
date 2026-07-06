@@ -3,7 +3,8 @@
 
 <h4>Tambah Jadwal</h4>
 
-<form method="post" action="/schedules/store">
+<form action="<?= base_url('schedules/store') ?>" method="post">
+    <?= csrf_field() ?>
 
     <div class="mb-3">
         <label>Layanan</label>
