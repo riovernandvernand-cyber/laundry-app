@@ -10,33 +10,39 @@ class CreateUsersTable extends Migration
     {
         $this->forge->addField([
             'id' => [
-                'type'           => 'INT',
-                'constraint'     => 11,
-                'unsigned'       => true,
+                'type' => 'INT',
+                'constraint' => 11,
+                'unsigned' => true,
                 'auto_increment' => true,
             ],
             'name' => [
-                'type'       => 'VARCHAR',
+                'type' => 'VARCHAR',
                 'constraint' => 100,
             ],
             'email' => [
-                'type'       => 'VARCHAR',
+                'type' => 'VARCHAR',
                 'constraint' => 100,
+                'unique' => true, // Tambahkan ini agar validasi tingkat database makin kokoh
+            ],
+            'phone' => [
+                'type' => 'VARCHAR',
+                'constraint' => 15,
+                'null' => true, // Tambahkan kolom nomor telepon/WA pelanggan
             ],
             'password' => [
-                'type'       => 'VARCHAR',
+                'type' => 'VARCHAR',
                 'constraint' => 255,
             ],
             'role' => [
-                'type'       => 'ENUM',
+                'type' => 'ENUM',
                 'constraint' => ['admin', 'staff', 'pelanggan'],
-                'default'    => 'pelanggan',
+                'default' => 'pelanggan',
             ],
             'status' => [
-                'type'       => 'TINYINT',
+                'type' => 'TINYINT',
                 'constraint' => 1,
-                'default'    => 1,
-                'comment'    => '1=aktif, 0=nonaktif',
+                'default' => 1,
+                'comment' => '1=aktif, 0=nonaktif',
             ],
             'created_at' => [
                 'type' => 'TIMESTAMP',
@@ -49,7 +55,6 @@ class CreateUsersTable extends Migration
         ]);
 
         $this->forge->addPrimaryKey('id');
-        $this->forge->addUniqueKey('email');
         $this->forge->createTable('users', true);
     }
 
