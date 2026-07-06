@@ -64,6 +64,12 @@ $routes->group('', ['filter' => 'auth'], function ($routes) {
     $routes->get('dashboard', 'Dashboard::index');
 
     // ======================
+    // OPERASIONAL STAFF & ADMIN
+    // ======================
+    $routes->get('tasks', '\App\Controllers\StaffController::index', ['filter' => 'role:admin,staff']);
+    $routes->get('tasks/done/(:num)', '\App\Controllers\BookingController::done/$1', ['filter' => 'role:admin,staff']);
+
+    // ======================
     // SERVICES
     // ======================
     $routes->group('services', ['filter' => 'role:admin'], function ($routes) {
@@ -112,37 +118,28 @@ $routes->group('', ['filter' => 'auth'], function ($routes) {
     // ======================
     $routes->group('bookings', function ($routes) {
 
-        $routes->get('get-kota', 'BookingController::getKota');
-
-        // LIST
+        // --- 1. AJAX ENDPOINTS & STATIC ROUTES (Taruh paling atas) ---
+        $routes->get('getCitiesByProvince', 'BookingController::getCitiesByProvince');
+        $routes->get('create', 'BookingController::create');
+        $routes->post('store', 'BookingController::store');
         $routes->get('', 'BookingController::index');
 
-        // MIDTRANS REDIRECT
+        // --- 2. MIDTRANS REDIRECT CALLBACKS ---
         $routes->get('finish', 'PaymentController::finish');
         $routes->get('unfinish', 'PaymentController::unfinish');
         $routes->get('error', 'PaymentController::error');
 
-        // CREATE
-        $routes->get('create', 'BookingController::create');
-        $routes->post('store', 'BookingController::store');
-
-        // PAYMENT
+        // --- 3. DYNAMIC ROUTES WITH PARAMETERS (:num) ---
         $routes->get('pay/(:num)', 'BookingController::pay/$1');
-
-        // CANCEL
         $routes->get('cancel/(:num)', 'BookingController::cancel/$1');
-
-        // PRINT
         $routes->get('print/(:num)', 'BookingController::printBooking/$1');
 
-        // APPROVE / REJECT
+        // --- 4. PROTECTED ROUTES (ADMIN & STAFF FILTER) ---
+        // Catatan: Pastikan filter 'role' kamu mendukung penulisan parameter terpisah atau array sesuai konfigurasi App/Filters
         $routes->get('approve/(:num)', 'BookingController::approve/$1', ['filter' => 'role:admin']);
         $routes->get('reject/(:num)', 'BookingController::reject/$1', ['filter' => 'role:admin']);
 
-        // PROCESS
         $routes->get('process/(:num)', 'BookingController::process/$1', ['filter' => 'role:admin,staff']);
-
-        // DONE
         $routes->get('done/(:num)', 'BookingController::done/$1', ['filter' => 'role:admin,staff']);
 
     });
