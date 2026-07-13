@@ -30,7 +30,7 @@ class MidtransCallback extends Controller
             // DATA
             // ======================
             $order_id = $data['order_id'] ?? null;
-            $status   = $data['transaction_status'] ?? null;
+            $status = $data['transaction_status'] ?? null;
 
             if (!$order_id) {
                 return $this->response
@@ -41,7 +41,7 @@ class MidtransCallback extends Controller
             // ======================
             // AMBIL BOOKING ID
             // ======================
-            preg_match('/ORDER-(\d+)-/', $order_id, $match);
+            preg_match('/LAUNDRY-(\d+)-/', $order_id, $match);
 
             if (!isset($match[1])) {
                 return $this->response

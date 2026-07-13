@@ -20,7 +20,7 @@ class PaymentController extends BaseController
         $notif = new Notification();
 
         $transaction = $notif->transaction_status;
-        $order_id    = $notif->order_id;
+        $order_id = $notif->order_id;
 
         $paymentModel = new PaymentModel();
 
@@ -41,7 +41,7 @@ class PaymentController extends BaseController
         if ($transaction == 'settlement' || $transaction == 'capture') {
 
             $paymentModel->update($payment['id'], [
-                'status'  => 'paid',
+                'status' => 'paid',
                 'paid_at' => date('Y-m-d H:i:s')
             ]);
 
