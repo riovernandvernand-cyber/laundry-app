@@ -1,0 +1,224 @@
+-- MySQL dump 10.13  Distrib 8.0.18, for Win64 (x86_64)
+--
+-- Host: 127.0.0.1    Database: db_laundry
+-- ------------------------------------------------------
+-- Server version	8.4.2
+
+/*!40101 SET @OLD_CHARACTER_SET_CLIENT=@@CHARACTER_SET_CLIENT */;
+/*!40101 SET @OLD_CHARACTER_SET_RESULTS=@@CHARACTER_SET_RESULTS */;
+/*!40101 SET @OLD_COLLATION_CONNECTION=@@COLLATION_CONNECTION */;
+/*!50503 SET NAMES utf8mb4 */;
+/*!40103 SET @OLD_TIME_ZONE=@@TIME_ZONE */;
+/*!40103 SET TIME_ZONE='+00:00' */;
+/*!40014 SET @OLD_UNIQUE_CHECKS=@@UNIQUE_CHECKS, UNIQUE_CHECKS=0 */;
+/*!40014 SET @OLD_FOREIGN_KEY_CHECKS=@@FOREIGN_KEY_CHECKS, FOREIGN_KEY_CHECKS=0 */;
+/*!40101 SET @OLD_SQL_MODE=@@SQL_MODE, SQL_MODE='NO_AUTO_VALUE_ON_ZERO' */;
+/*!40111 SET @OLD_SQL_NOTES=@@SQL_NOTES, SQL_NOTES=0 */;
+
+--
+-- Table structure for table `bookings`
+--
+
+DROP TABLE IF EXISTS `bookings`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!50503 SET character_set_client = utf8mb4 */;
+CREATE TABLE `bookings` (
+  `id` int unsigned NOT NULL AUTO_INCREMENT,
+  `user_id` int unsigned NOT NULL,
+  `service_id` int unsigned NOT NULL,
+  `schedule_id` int unsigned DEFAULT NULL,
+  `weight` int NOT NULL COMMENT 'Berat dalam kg',
+  `total` int NOT NULL COMMENT 'Total harga (weight * price)',
+  `status` enum('pending','confirmed','processing','done','cancelled') COLLATE utf8mb4_general_ci NOT NULL DEFAULT 'pending',
+  `note` text COLLATE utf8mb4_general_ci COMMENT 'Keterangan/catatan tambahan',
+  `created_at` timestamp NULL DEFAULT NULL,
+  `updated_at` timestamp NULL DEFAULT NULL,
+  PRIMARY KEY (`id`),
+  KEY `bookings_user_id_foreign` (`user_id`),
+  KEY `bookings_service_id_foreign` (`service_id`),
+  KEY `bookings_schedule_id_foreign` (`schedule_id`),
+  CONSTRAINT `bookings_schedule_id_foreign` FOREIGN KEY (`schedule_id`) REFERENCES `schedules` (`id`) ON DELETE CASCADE ON UPDATE SET NULL,
+  CONSTRAINT `bookings_service_id_foreign` FOREIGN KEY (`service_id`) REFERENCES `services` (`id`) ON DELETE CASCADE ON UPDATE CASCADE,
+  CONSTRAINT `bookings_user_id_foreign` FOREIGN KEY (`user_id`) REFERENCES `users` (`id`) ON DELETE CASCADE ON UPDATE CASCADE
+) ENGINE=InnoDB AUTO_INCREMENT=5 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+/*!40101 SET character_set_client = @saved_cs_client */;
+
+--
+-- Dumping data for table `bookings`
+--
+
+LOCK TABLES `bookings` WRITE;
+/*!40000 ALTER TABLE `bookings` DISABLE KEYS */;
+INSERT INTO `bookings` VALUES (1,3,3,3,5,50000,'done','Pisahkan pakaian putih dan berwarna','2026-05-01 20:50:51','2026-05-03 20:50:51'),(2,3,4,4,3,54000,'processing','Butuh cepat untuk besok pagi','2026-05-03 20:50:51','2026-05-04 20:50:51'),(3,4,1,1,8,56000,'confirmed',NULL,'2026-05-02 20:50:51','2026-05-02 20:50:51'),(4,4,5,6,2,50000,'pending','Bed cover ukuran king size','2026-05-04 20:50:51','2026-05-04 20:50:51');
+/*!40000 ALTER TABLE `bookings` ENABLE KEYS */;
+UNLOCK TABLES;
+
+--
+-- Table structure for table `migrations`
+--
+
+DROP TABLE IF EXISTS `migrations`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!50503 SET character_set_client = utf8mb4 */;
+CREATE TABLE `migrations` (
+  `id` bigint unsigned NOT NULL AUTO_INCREMENT,
+  `version` varchar(255) COLLATE utf8mb4_general_ci NOT NULL,
+  `class` varchar(255) COLLATE utf8mb4_general_ci NOT NULL,
+  `group` varchar(255) COLLATE utf8mb4_general_ci NOT NULL,
+  `namespace` varchar(255) COLLATE utf8mb4_general_ci NOT NULL,
+  `time` int NOT NULL,
+  `batch` int unsigned NOT NULL,
+  PRIMARY KEY (`id`)
+) ENGINE=InnoDB AUTO_INCREMENT=16 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+/*!40101 SET character_set_client = @saved_cs_client */;
+
+--
+-- Dumping data for table `migrations`
+--
+
+LOCK TABLES `migrations` WRITE;
+/*!40000 ALTER TABLE `migrations` DISABLE KEYS */;
+INSERT INTO `migrations` VALUES (11,'2026-05-05-024428','App\\Database\\Migrations\\CreateUsersTable','default','App',1777953040,1),(12,'2026-05-05-024605','App\\Database\\Migrations\\CreateServicesTable','default','App',1777953040,1),(13,'2026-05-05-024642','App\\Database\\Migrations\\CreateSchedulesTable','default','App',1777953041,1),(14,'2026-05-05-024700','App\\Database\\Migrations\\CreateBookingsTable','default','App',1777953041,1),(15,'2026-05-05-024751','App\\Database\\Migrations\\CreatePaymentsTable','default','App',1777953041,1);
+/*!40000 ALTER TABLE `migrations` ENABLE KEYS */;
+UNLOCK TABLES;
+
+--
+-- Table structure for table `payments`
+--
+
+DROP TABLE IF EXISTS `payments`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!50503 SET character_set_client = utf8mb4 */;
+CREATE TABLE `payments` (
+  `id` int unsigned NOT NULL AUTO_INCREMENT,
+  `booking_id` int unsigned NOT NULL,
+  `amount` int NOT NULL,
+  `status` enum('pending','paid','failed') COLLATE utf8mb4_general_ci NOT NULL DEFAULT 'pending',
+  `midtrans_order_id` varchar(100) COLLATE utf8mb4_general_ci DEFAULT NULL,
+  `snap_token` text COLLATE utf8mb4_general_ci,
+  `payment_method` varchar(50) COLLATE utf8mb4_general_ci DEFAULT NULL COMMENT 'transfer_bank/qris/gopay/etc',
+  `paid_at` timestamp NULL DEFAULT NULL,
+  `created_at` timestamp NULL DEFAULT NULL,
+  `updated_at` timestamp NULL DEFAULT NULL,
+  PRIMARY KEY (`id`),
+  KEY `payments_booking_id_foreign` (`booking_id`),
+  CONSTRAINT `payments_booking_id_foreign` FOREIGN KEY (`booking_id`) REFERENCES `bookings` (`id`) ON DELETE CASCADE ON UPDATE CASCADE
+) ENGINE=InnoDB AUTO_INCREMENT=4 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+/*!40101 SET character_set_client = @saved_cs_client */;
+
+--
+-- Dumping data for table `payments`
+--
+
+LOCK TABLES `payments` WRITE;
+/*!40000 ALTER TABLE `payments` DISABLE KEYS */;
+INSERT INTO `payments` VALUES (1,1,50000,'paid','ORDER-1-1777693851',NULL,'bank_transfer','2026-05-01 20:50:51','2026-05-01 20:50:51','2026-05-01 20:50:51'),(2,2,54000,'paid','ORDER-2-1777866651',NULL,'gopay','2026-05-03 20:50:51','2026-05-03 20:50:51','2026-05-03 20:50:51'),(3,3,56000,'paid','ORDER-3-1777780251',NULL,'qris','2026-05-02 20:50:51','2026-05-02 20:50:51','2026-05-02 20:50:51');
+/*!40000 ALTER TABLE `payments` ENABLE KEYS */;
+UNLOCK TABLES;
+
+--
+-- Table structure for table `schedules`
+--
+
+DROP TABLE IF EXISTS `schedules`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!50503 SET character_set_client = utf8mb4 */;
+CREATE TABLE `schedules` (
+  `id` int unsigned NOT NULL AUTO_INCREMENT,
+  `service_id` int unsigned NOT NULL,
+  `date` date NOT NULL,
+  `time` time NOT NULL,
+  `capacity` int NOT NULL DEFAULT '5' COMMENT 'Kapasitas slot per jadwal',
+  `created_at` timestamp NULL DEFAULT NULL,
+  `updated_at` timestamp NULL DEFAULT NULL,
+  PRIMARY KEY (`id`),
+  KEY `schedules_service_id_foreign` (`service_id`),
+  CONSTRAINT `schedules_service_id_foreign` FOREIGN KEY (`service_id`) REFERENCES `services` (`id`) ON DELETE CASCADE ON UPDATE CASCADE
+) ENGINE=InnoDB AUTO_INCREMENT=7 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+/*!40101 SET character_set_client = @saved_cs_client */;
+
+--
+-- Dumping data for table `schedules`
+--
+
+LOCK TABLES `schedules` WRITE;
+/*!40000 ALTER TABLE `schedules` DISABLE KEYS */;
+INSERT INTO `schedules` VALUES (1,1,'2026-05-05','08:00:00',5,'2026-05-04 20:50:51','2026-05-04 20:50:51'),(2,1,'2026-05-05','13:00:00',5,'2026-05-04 20:50:51','2026-05-04 20:50:51'),(3,3,'2026-05-06','09:00:00',4,'2026-05-04 20:50:51','2026-05-04 20:50:51'),(4,4,'2026-05-06','10:00:00',3,'2026-05-04 20:50:51','2026-05-04 20:50:51'),(5,2,'2026-05-07','08:00:00',6,'2026-05-04 20:50:51','2026-05-04 20:50:51'),(6,5,'2026-05-07','14:00:00',3,'2026-05-04 20:50:51','2026-05-04 20:50:51');
+/*!40000 ALTER TABLE `schedules` ENABLE KEYS */;
+UNLOCK TABLES;
+
+--
+-- Table structure for table `services`
+--
+
+DROP TABLE IF EXISTS `services`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!50503 SET character_set_client = utf8mb4 */;
+CREATE TABLE `services` (
+  `id` int unsigned NOT NULL AUTO_INCREMENT,
+  `name` varchar(100) COLLATE utf8mb4_general_ci NOT NULL,
+  `price` int NOT NULL COMMENT 'Harga per kg',
+  `description` text COLLATE utf8mb4_general_ci,
+  `duration` int DEFAULT NULL COMMENT 'Estimasi durasi dalam jam',
+  `image` varchar(255) COLLATE utf8mb4_general_ci DEFAULT NULL COMMENT 'Foto layanan',
+  `created_at` datetime DEFAULT NULL,
+  `updated_at` datetime DEFAULT NULL,
+  PRIMARY KEY (`id`)
+) ENGINE=InnoDB AUTO_INCREMENT=6 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+/*!40101 SET character_set_client = @saved_cs_client */;
+
+--
+-- Dumping data for table `services`
+--
+
+LOCK TABLES `services` WRITE;
+/*!40000 ALTER TABLE `services` DISABLE KEYS */;
+INSERT INTO `services` VALUES (1,'Cuci Biasa',7000,'Cuci bersih menggunakan deterjen premium. Cocok untuk pakaian sehari-hari.',48,NULL,'2026-05-05 03:50:51','2026-05-05 03:50:51'),(2,'Setrika',5000,'Setrika rapi dengan uap. Pakaian dijamin licin dan wangi.',24,NULL,'2026-05-05 03:50:51','2026-05-05 03:50:51'),(3,'Cuci + Setrika',10000,'Paket lengkap cuci dan setrika. Hemat waktu dan biaya.',72,NULL,'2026-05-05 03:50:51','2026-05-05 03:50:51'),(4,'Express (Cuci + Setrika)',18000,'Layanan kilat cuci dan setrika. Selesai dalam 6 jam!',6,NULL,'2026-05-05 03:50:51','2026-05-05 03:50:51'),(5,'Cuci Bed Cover',25000,'Khusus pencucian bed cover, selimut, dan sprei. Menggunakan mesin khusus.',72,NULL,'2026-05-05 03:50:51','2026-05-05 03:50:51');
+/*!40000 ALTER TABLE `services` ENABLE KEYS */;
+UNLOCK TABLES;
+
+--
+-- Table structure for table `users`
+--
+
+DROP TABLE IF EXISTS `users`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!50503 SET character_set_client = utf8mb4 */;
+CREATE TABLE `users` (
+  `id` int unsigned NOT NULL AUTO_INCREMENT,
+  `name` varchar(100) COLLATE utf8mb4_general_ci NOT NULL,
+  `email` varchar(100) COLLATE utf8mb4_general_ci NOT NULL,
+  `password` varchar(255) COLLATE utf8mb4_general_ci NOT NULL,
+  `role` enum('admin','staff','pelanggan') COLLATE utf8mb4_general_ci NOT NULL DEFAULT 'pelanggan',
+  `status` tinyint(1) NOT NULL DEFAULT '1' COMMENT '1=aktif, 0=nonaktif',
+  `created_at` timestamp NULL DEFAULT NULL,
+  `updated_at` timestamp NULL DEFAULT NULL,
+  PRIMARY KEY (`id`),
+  UNIQUE KEY `email` (`email`)
+) ENGINE=InnoDB AUTO_INCREMENT=6 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+/*!40101 SET character_set_client = @saved_cs_client */;
+
+--
+-- Dumping data for table `users`
+--
+
+LOCK TABLES `users` WRITE;
+/*!40000 ALTER TABLE `users` DISABLE KEYS */;
+INSERT INTO `users` VALUES (1,'Administrator','admin@laundry.com','$2y$10$XKNgrzLC849GYXKpQgk3DekR/WvfJ46qZIQ8Z3m7evTi3dfn5XHRK','admin',1,'2026-05-04 20:50:50','2026-05-04 20:50:50'),(2,'Budi Teknisi','staff@laundry.com','$2y$10$H8D7tQv8dwEtUOv2JI2jaOPaGPwq9zkYQ97cjdZiaBiTfwaLdFORW','staff',1,'2026-05-04 20:50:50','2026-05-04 20:50:50'),(3,'Siti Pelanggan','siti@gmail.com','$2y$10$mWXCnKuXJGGyFL7i3CZ6h.xpLZHEx1Sxp4iaa1lcO4T0fggqeubjO','pelanggan',1,'2026-05-04 20:50:50','2026-05-04 20:50:50'),(4,'Andi Pelanggan','andi@gmail.com','$2y$10$CRLu5GSfHcw3S75HaQigp.KpkyhRNeuVO6unUngutqR24EvLJCqVK','pelanggan',1,'2026-05-04 20:50:51','2026-05-04 20:50:51'),(5,'Dewi Nonaktif','dewi@gmail.com','$2y$10$wDMmAK4h96e8HGVvIZOqou7CjNJNo8Grw.3Nudn5NsIbhXglW/1ju','pelanggan',0,'2026-05-04 20:50:51','2026-05-04 20:50:51');
+/*!40000 ALTER TABLE `users` ENABLE KEYS */;
+UNLOCK TABLES;
+
+--
+-- Dumping routines for database 'db_laundry'
+--
+/*!40103 SET TIME_ZONE=@OLD_TIME_ZONE */;
+
+/*!40101 SET SQL_MODE=@OLD_SQL_MODE */;
+/*!40014 SET FOREIGN_KEY_CHECKS=@OLD_FOREIGN_KEY_CHECKS */;
+/*!40014 SET UNIQUE_CHECKS=@OLD_UNIQUE_CHECKS */;
+/*!40101 SET CHARACTER_SET_CLIENT=@OLD_CHARACTER_SET_CLIENT */;
+/*!40101 SET CHARACTER_SET_RESULTS=@OLD_CHARACTER_SET_RESULTS */;
+/*!40101 SET COLLATION_CONNECTION=@OLD_COLLATION_CONNECTION */;
+/*!40111 SET SQL_NOTES=@OLD_SQL_NOTES */;
+
+-- Dump completed on 2026-05-05 11:09:43
