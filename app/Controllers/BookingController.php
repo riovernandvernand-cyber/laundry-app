@@ -89,8 +89,8 @@ class BookingController extends BaseController
                 return redirect()->to('/bookings')->with('error', 'Akses ditolak');
             }
         }
-
-        Config::$serverKey = getenv('MIDTRANS_SERVER_KEY');
+        Config
+            ::$serverKey = getenv('MIDTRANS_SERVER_KEY');
         Config::$isProduction = false;
         Config::$isSanitized = true;
         Config::$is3ds = true;
